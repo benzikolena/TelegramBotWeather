@@ -6,15 +6,6 @@ const axios = require("axios");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const WEATHER_KEY = process.env.WEATHER_KEY;
 
-console.log('BOT_TOKEN:', process.env.BOT_TOKEN ? 'SET' : 'MISSING');
-console.log('WEATHER_KEY:', process.env.WEATHER_KEY ? 'SET' : 'MISSING');
-
-if (!process.env.BOT_TOKEN || !process.env.WEATHER_KEY) {
-  console.error('❌ Missing required environment variables!');
-  process.exit(1);
-}
-
-
 bot.start((ctx) => {
   ctx.reply(
     '🌤️ Welcome!\n\nSend me your location and I will show you the current weather.',
@@ -59,7 +50,12 @@ bot.on('message', async (ctx) => {
   }
 });
 
-bot.launch();
+bot.launch({
+  webhook: {
+    domain: 'https://your-railway-app.up.railway.app',
+    port: process.env.PORT || 3000
+  }
+});
 
 // Enable graceful stop
 process.once('SIGINT', () => bot.stop('SIGINT'));
