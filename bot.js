@@ -6,7 +6,21 @@ const axios = require("axios");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const WEATHER_KEY = process.env.WEATHER_KEY;
 
-bot.start((ctx) => ctx.reply('Send me your location and I’ll tell you the weather 🌤️'));
+
+bot.start((ctx) => {
+  ctx.reply(
+    '🌤️ Welcome!\n\nSend me your location and I will show you the current weather.',
+    {
+      reply_markup: {
+        keyboard: [
+          [{ text: '📍 Share location', request_location: true }]
+        ],
+        resize_keyboard: true,
+        one_time_keyboard: true
+      }
+    }
+  );
+});
 
 bot.on('message', async (ctx) => {
   if (!ctx.message.location) {
