@@ -1,7 +1,10 @@
-require('dotenv').config();
-
 const { Telegraf } = require('telegraf');
-const axios = require("axios");
+const axios = require('axios');
+
+if (!process.env.BOT_TOKEN || !process.env.WEATHER_KEY) {
+  console.error('❌ Missing BOT_TOKEN or WEATHER_KEY in environment variables');
+  process.exit(1);
+}
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const WEATHER_KEY = process.env.WEATHER_KEY;
@@ -11,9 +14,7 @@ bot.start((ctx) => {
     '🌤️ Welcome!\n\nSend me your location and I will show you the current weather.',
     {
       reply_markup: {
-        keyboard: [
-          [{ text: '📍 Share location', request_location: true }]
-        ],
+        keyboard: [[{ text: '📍 Share location', request_location: true }]],
         resize_keyboard: true,
         one_time_keyboard: true
       }
@@ -32,16 +33,11 @@ bot.on('message', async (ctx) => {
     const url = `https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&units=metric&appid=${WEATHER_KEY}`;
     const { data } = await axios.get(url);
 
-    const temp = data.main.temp;
-    const feelsLike = data.main.feels_like;
-    const desc = data.weather[0].description;
-    const city = data.name;
-
-   ctx.reply(
-    `🌍 Weather in ${city}:\n` +
-    `🌡️ Temperature: ${temp}°C\n` +
-    `🤔 Feels like: ${feelsLike}°C\n` +
-    `🌤️ Condition: ${desc}`
+    ctx.reply(
+      `🌍 Weather in ${data.name}:\n` +
+      `🌡️ Temperature: ${data.main.temp}°C\n` +
+      `🤔 Feels like: ${data.main.feels_like}°C\n` +
+      `🌤️ Condition: ${data.weather[0].description}`
     );
 
   } catch (err) {
@@ -50,13 +46,16 @@ bot.on('message', async (ctx) => {
   }
 });
 
+const PORT = process.env.PORT || 3000;
+const WEBHOOK_DOMAIN = process.env.RAILWAY_STATIC_URL || 'http://localhost:3000';
+
 bot.launch({
   webhook: {
-    domain: 'https://your-railway-app.up.railway.app',
-    port: process.env.PORT || 3000
+    domain: WEBHOOK_DOMAIN,
+    port: PORT
   }
 });
 
-// Enable graceful stop
+// Graceful shutdown
 process.once('SIGINT', () => bot.stop('SIGINT'));
 process.once('SIGTERM', () => bot.stop('SIGTERM'));
