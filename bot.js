@@ -6,6 +6,14 @@ const axios = require("axios");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const WEATHER_KEY = process.env.WEATHER_KEY;
 
+console.log('BOT_TOKEN:', process.env.BOT_TOKEN ? 'SET' : 'MISSING');
+console.log('WEATHER_KEY:', process.env.WEATHER_KEY ? 'SET' : 'MISSING');
+
+if (!process.env.BOT_TOKEN || !process.env.WEATHER_KEY) {
+  console.error('❌ Missing required environment variables!');
+  process.exit(1);
+}
+
 
 bot.start((ctx) => {
   ctx.reply(
