@@ -1,15 +1,19 @@
+require('dotenv').config();
 const { Telegraf } = require('telegraf');
 const axios = require('axios');
 
+// Check required environment variables
 if (!process.env.BOT_TOKEN || !process.env.WEATHER_KEY) {
   console.error('❌ Missing BOT_TOKEN or WEATHER_KEY in environment variables');
   process.exit(1);
 }
-console.log("testing...");
 
-const bot = new Telegraf(process.env.BOT_TOKEN);
+const BOT_TOKEN = process.env.BOT_TOKEN;
 const WEATHER_KEY = process.env.WEATHER_KEY;
 
+const bot = new Telegraf(BOT_TOKEN);
+
+// Handle /start command
 bot.start((ctx) => {
   ctx.reply(
     '🌤️ Welcome!\n\nSend me your location and I will show you the current weather.',
@@ -23,6 +27,7 @@ bot.start((ctx) => {
   );
 });
 
+// Handle messages with location
 bot.on('message', async (ctx) => {
   if (!ctx.message.location) {
     return ctx.reply('📍 Please send your location.');
@@ -40,22 +45,29 @@ bot.on('message', async (ctx) => {
       `🤔 Feels like: ${data.main.feels_like}°C\n` +
       `🌤️ Condition: ${data.weather[0].description}`
     );
-
   } catch (err) {
     console.error(err.response?.data || err.message);
     ctx.reply('⚠️ Failed to fetch weather. Try again later.');
   }
 });
 
+// === Deployment settings ===
 const PORT = process.env.PORT || 3000;
-const WEBHOOK_DOMAIN = process.env.RAILWAY_STATIC_URL || 'http://localhost:3000';
+const WEBHOOK_DOMAIN = process.env.RAILWAY_STATIC_URL;
 
-bot.launch({
-  webhook: {
-    domain: WEBHOOK_DOMAIN,
-    port: PORT
-  }
-});
+// Use webhook in production, polling locally
+if (WEBHOOK_DOMAIN) {
+  bot.launch({
+    webhook: {
+      domain: WEBHOOK_DOMAIN,
+      port: PORT
+    }
+  });
+  console.log(`🚀 Bot running on Railway webhook at ${WEBHOOK_DOMAIN}:${PORT}`);
+} else {
+  bot.launch();
+  console.log('🚀 Bot running locally using polling...');
+}
 
 // Graceful shutdown
 process.once('SIGINT', () => bot.stop('SIGINT'));
