@@ -1,5 +1,5 @@
 require('dotenv').config();
-const { Telegraf } = require('telegraf');
+const { Telegraf, Markup } = require('telegraf');
 const axios = require('axios');
 
 // Validate ENV
@@ -15,17 +15,16 @@ const bot = new Telegraf(BOT_TOKEN);
 
 // ===== START COMMAND =====
 bot.start((ctx) => {
-  ctx.reply(
+  return ctx.reply(
     '🌤️ Welcome!\n\nSend me your location and I will show you the current weather.',
-    {
-      reply_markup: {
-        keyboard: [[{ text: '📍 Share location', request_location: true }]],
-        resize_keyboard: true,
-        one_time_keyboard: true
-      }
-    }
+    Markup.keyboard([
+      Markup.button.locationRequest('📍 Share location')
+    ])
+      .resize()
+      .oneTime()
   );
 });
+
 
 // ===== LOCATION HANDLER =====
 bot.on('message', async (ctx) => {
