@@ -5,6 +5,7 @@ if (!process.env.BOT_TOKEN || !process.env.WEATHER_KEY) {
   console.error('❌ Missing BOT_TOKEN or WEATHER_KEY in environment variables');
   process.exit(1);
 }
+console.log("testing...");
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
 const WEATHER_KEY = process.env.WEATHER_KEY;
