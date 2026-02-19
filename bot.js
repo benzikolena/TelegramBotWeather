@@ -77,4 +77,10 @@ const WEBHOOK_DOMAIN = process.env.RAILWAY_STATIC_URL;
       console.log('🚀 Bot running locally with polling');
     }
   } catch (err) {
-    console.error('❌ Bot launch fa
+    console.error('❌ Bot launch failed:', err);
+  }
+})();
+
+// ===== GRACEFUL STOP =====
+process.once('SIGINT', () => bot.stop('SIGINT'));
+process.once('SIGTERM', () => bot.stop('SIGTERM'));
