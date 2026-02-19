@@ -2,9 +2,9 @@ require('dotenv').config();
 const { Telegraf } = require('telegraf');
 const axios = require('axios');
 
-// Check required environment variables
+// Validate ENV
 if (!process.env.BOT_TOKEN || !process.env.WEATHER_KEY) {
-  console.error('❌ Missing BOT_TOKEN or WEATHER_KEY in environment variables');
+  console.error('❌ Missing BOT_TOKEN or WEATHER_KEY');
   process.exit(1);
 }
 
@@ -13,7 +13,7 @@ const WEATHER_KEY = process.env.WEATHER_KEY;
 
 const bot = new Telegraf(BOT_TOKEN);
 
-// Handle /start command
+// ===== START COMMAND =====
 bot.start((ctx) => {
   ctx.reply(
     '🌤️ Welcome!\n\nSend me your location and I will show you the current weather.',
@@ -27,7 +27,7 @@ bot.start((ctx) => {
   );
 });
 
-// Handle messages with location
+// ===== LOCATION HANDLER =====
 bot.on('message', async (ctx) => {
   if (!ctx.message.location) {
     return ctx.reply('📍 Please send your location.');
@@ -51,24 +51,30 @@ bot.on('message', async (ctx) => {
   }
 });
 
-// === Deployment settings ===
+// ===== LAUNCH CONFIG =====
 const PORT = process.env.PORT || 3000;
 const WEBHOOK_DOMAIN = process.env.RAILWAY_STATIC_URL;
 
-// Use webhook in production, polling locally
-if (WEBHOOK_DOMAIN) {
-  bot.launch({
-    webhook: {
-      domain: WEBHOOK_DOMAIN,
-      port: PORT
-    }
-  });
-  console.log(`🚀 Bot running on Railway webhook at ${WEBHOOK_DOMAIN}:${PORT}`);
-} else {
-  bot.launch();
-  console.log('🚀 Bot running locally using polling...');
-}
+(async () => {
+  try {
+    if (WEBHOOK_DOMAIN) {
+      // 🚀 PRODUCTION (Railway → webhook)
+      await bot.launch({
+        webhook: {
+          domain: WEBHOOK_DOMAIN,
+          port: PORT
+        },
+        dropPendingUpdates: true // ⭐ HERE
+      });
 
-// Graceful shutdown
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+      console.log(`🚀 Bot running with webhook on ${WEBHOOK_DOMAIN}`);
+    } else {
+      // 💻 LOCAL (polling)
+      await bot.launch({
+        dropPendingUpdates: true // ⭐ HERE
+      });
+
+      console.log('🚀 Bot running locally with polling');
+    }
+  } catch (err) {
+    console.error('❌ Bot launch fa
